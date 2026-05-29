@@ -1,6 +1,7 @@
 from playwright.sync_api import sync_playwright
 import pandas as pd
 from datetime import datetime
+import logging
 
 data_list = []
 failed_ids = []
@@ -27,7 +28,7 @@ def scrape_id(page, id, data_list):
             page.wait_for_timeout(2000)
             break
         except:
-            print(f"Next button click attempt {click_attempt + 1} didn't trigger load, retrying...")
+            logging.info(f"Next button click attempt {click_attempt + 1} didn't trigger load, retrying...")
             page.wait_for_timeout(1000)
 
     frame = page.frame_locator("iframe[name='app-iframe']")
@@ -87,17 +88,31 @@ def scrape_id(page, id, data_list):
 
 
 with sync_playwright() as p:
-    context = p.chromium.launch_persistent_context(
-        user_data_dir="user_data",
+
+    # For first time setup you need to do this for login and get your state.json file
+    # browser = p.chromium.launch(
+    #     headless=False,
+    #     channel="chrome",
+    #     args=["--disable-blink-features=AutomationControlled"]
+    # )
+    # context = browser.new_context()
+    # page = context.new_page()
+    # context = browser.new_context(storage_state="state.json")
+    # page = browser.new_page()
+    browser = p.chromium.launch(
         headless=False,
-        channel="chrome",
-        args=["--disable-blink-features=AutomationControlled"],
+        args=["--disable-blink-features=AutomationControlled"]
     )
+
+    context = browser.new_context(storage_state="state.json")
     page = context.new_page()
     
     page.goto(f"{url}", wait_until='networkidle')
     page.wait_for_timeout(4000)
-
+    # page.pause()
+    # for first time login use this then
+    # context.storage_state(path="state.json")
+    
     frame = page.frame_locator("iframe[name='app-iframe']")
     page_numbers = frame.locator("div.pagination ul.pagination li a[data-turbo='false']").evaluate_all(
         """elements => elements
@@ -111,7 +126,7 @@ with sync_playwright() as p:
         page_numbers = [1] + page_numbers
 
     id_values = []
-    print(page_numbers)
+    logging.info(page_numbers)
 
     for page_num in page_numbers:
         if page_num == 1:
@@ -131,7 +146,7 @@ with sync_playwright() as p:
                 id_values.append(row_id)
         page.wait_for_timeout(2000)
 
-    print(f"Total IDs collected: {len(id_values)}")
+    logging.info(f"Total IDs collected: {len(id_values)}")
 
     for id in id_values:
         max_retries = 2
@@ -145,15 +160,15 @@ with sync_playwright() as p:
             except Exception as e:
                 attempt += 1
                 if attempt < max_retries:
-                    print(f"ID {id} failed (attempt {attempt}), retrying... Error: {e}")
+                    logging.info(f"ID {id} failed (attempt {attempt}), retrying... Error: {e}")
                     page.wait_for_timeout(3000)
                 else:
-                    print(f"ID {id} failed after {max_retries} attempts, skipping. Error: {e}")
+                    logging.info(f"ID {id} failed after {max_retries} attempts, skipping. Error: {e}")
                     failed_ids.append(id)
 
     # Retry failed IDs once more (no retry loop this time, just one attempt)
     if failed_ids:
-        print(f"Retrying {len(failed_ids)} failed IDs...")
+        logging.info(f"Retrying {len(failed_ids)} failed IDs...")
         for id in failed_ids:
             try:
                 scrape_id(page, id, data_list)
@@ -161,18 +176,18 @@ with sync_playwright() as p:
                 perma_failed.append({
                     "failed to process id":id
                 })
-                print(f"ID {id} permanently failed: {e}")
+                logging.info(f"ID {id} permanently failed: {e}")
 
     now = datetime.now()
     formatted_time = now.strftime("%Y-%m-%d_%H-%M-%S")
     df = pd.DataFrame(data_list)
     csv_filename = f"Postcodes_{formatted_time}.csv"
     df.to_csv(csv_filename, index=True)
-    print(f"Saved: {csv_filename} with {len(data_list)} rows")
+    logging.info(f"Saved: {csv_filename} with {len(data_list)} rows")
 
     fd = pd.DataFrame(perma_failed)
     failed_csv = f"Failedcodes_{formatted_time}.csv"
     fd.to_csv(failed_csv,index=True) 
-    print(f"Saved: {failed_csv} with {len(perma_failed)} rows")
+    logging.info(f"Saved: {failed_csv} with {len(perma_failed)} rows")
     page.wait_for_timeout(3000)
     context.close()

@@ -170,12 +170,10 @@ Contains:
 
 ---
 
-## Possible Improvements
+## Possible Improvements that collaborators could do
 
 * Replace static waits with dynamic waits
 * Add parallel processing (ThreadPoolExecutor)
-* Add logging system (instead of print)
-* Export to Excel instead of CSV
 * Headless mode support (if Shopify allows)
 
 ---
