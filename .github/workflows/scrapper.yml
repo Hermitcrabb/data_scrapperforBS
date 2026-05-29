@@ -28,9 +28,21 @@ jobs:
         run: |
           echo "${{ secrets.STATE_JSON_B64 }}" | base64 --decode > state.json
 
+      - name: Verfiy state.json
+        run: |
+          echo "File size: $(wc -c < state.json)"
+          python -c "import json; json.load(open('state.json')); print('state.json is valid JSON')"
+
       - name: Run scraper
         run: |
           python datascrapper.py
+      
+      - name : Upload debug screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-screenshots
+          path: "*.png"
 
       - name: Upload output CSV
         uses: actions/upload-artifact@v4

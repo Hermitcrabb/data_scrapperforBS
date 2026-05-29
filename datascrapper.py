@@ -106,18 +106,29 @@ with sync_playwright() as p:
         args=[
             "--disable-blink-features=AutomationControlled",
             "--no-sandbox",
-            "--disable-dev-shm-usage"
+            "--disable-dev-shm-usage",
+            "--disable-gpu",
+            "--window-size=1920,1080",
+            "--start-maximized"
         ]
     )
 
-    context = browser.new_context(storage_state="state.json")
+    context = browser.new_context(
+        storage_state="state.json",
+        user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        viewport={"width": 1920, "height": 1080},
+        java_script_enabled=True
+    )
     page = context.new_page()
-    
     page.goto(f"{url}", wait_until='domcontentloaded')
     page.wait_for_timeout(4000)
     # page.pause()
     # for first time login use this then
     # context.storage_state(path="state.json")
+
+    page.screenshot(path="debug_before_iframe.png", full_page=True)
+    print("Current URL:", page.url)
+    print("Page title:", page.title())
     page.wait_for_selector("iframe[name='app-iframe']", timeout=60000)
     frame = page.frame_locator("iframe[name='app-iframe']")
     page_numbers = frame.locator("div.pagination ul.pagination li a[data-turbo='false']").evaluate_all(
