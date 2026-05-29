@@ -55,7 +55,7 @@ def scrape_id(page, id, data_list):
 
         if idx == 1:
             row.locator("td.name_column a.shipping_rules_index_link").first.click(force=True)
-            page.wait_for_load_state("networkidle", timeout=10000)
+            page.wait_for_load_state("domcontentloaded", timeout=10000)
             page.wait_for_timeout(2000)
 
             frame = page.frame_locator("iframe[name='app-iframe']")
@@ -107,7 +107,7 @@ with sync_playwright() as p:
     context = browser.new_context(storage_state="state.json")
     page = context.new_page()
     
-    page.goto(f"{url}", wait_until='networkidle')
+    page.goto(f"{url}", wait_until='domcontentloaded')
     page.wait_for_timeout(4000)
     # page.pause()
     # for first time login use this then
@@ -134,7 +134,7 @@ with sync_playwright() as p:
         else:
             page.goto(
                 f"{url}?enabled_rates_page={page_num}",
-                wait_until="networkidle",
+                wait_until="domcontentloaded",
             )
             page.wait_for_timeout(6000)
             frame = page.frame_locator("iframe[name='app-iframe']")
