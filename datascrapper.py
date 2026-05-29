@@ -11,7 +11,7 @@ url = "https://admin.shopify.com/store/mr-roses-ro/apps/better-shipping/shipping
 def scrape_id(page, id, data_list):
     page.goto(f"{url}/{id}/edit", wait_until="domcontentloaded")
     page.wait_for_timeout(4000)
-
+    page.wait_for_selector("iframe[name='app-iframe']", timeout=60000)
     frame = page.frame_locator("iframe[name='app-iframe']")
     frame.locator("#shipping-rate-name-div").wait_for(state="visible", timeout=10000)
     shipping_name = (frame.locator("input[placeholder='E.g. USA Shipping']").input_value()).strip()
@@ -31,6 +31,7 @@ def scrape_id(page, id, data_list):
             logging.info(f"Next button click attempt {click_attempt + 1} didn't trigger load, retrying...")
             page.wait_for_timeout(1000)
 
+    page.wait_for_selector("iframe[name='app-iframe']", timeout=60000)
     frame = page.frame_locator("iframe[name='app-iframe']")
     frame.locator("#include_exact_zip_code_input").wait_for(state="visible", timeout=60000)
     page.wait_for_timeout(60000)
@@ -40,6 +41,7 @@ def scrape_id(page, id, data_list):
     page.goto(f"{url}/{id}/shipping_rules", wait_until="domcontentloaded")
     page.wait_for_timeout(10000)
 
+    page.wait_for_selector("iframe[name='app-iframe']", timeout=60000)
     frame = page.frame_locator("iframe[name='app-iframe']")
     frame.locator("#shipping_rules_table").wait_for(state="visible",timeout= 10000)
     page.wait_for_timeout(6000)
@@ -57,7 +59,7 @@ def scrape_id(page, id, data_list):
             row.locator("td.name_column a.shipping_rules_index_link").first.click(force=True)
             page.wait_for_load_state("domcontentloaded", timeout=10000)
             page.wait_for_timeout(2000)
-
+            page.wait_for_selector("iframe[name='app-iframe']", timeout=60000)
             frame = page.frame_locator("iframe[name='app-iframe']")
             select_element = frame.locator("select[name='duallistbox_include_exclude_products_helper2']")
             select_element.wait_for(state='visible', timeout=10000)
@@ -116,7 +118,7 @@ with sync_playwright() as p:
     # page.pause()
     # for first time login use this then
     # context.storage_state(path="state.json")
-    
+    page.wait_for_selector("iframe[name='app-iframe']", timeout=60000)
     frame = page.frame_locator("iframe[name='app-iframe']")
     page_numbers = frame.locator("div.pagination ul.pagination li a[data-turbo='false']").evaluate_all(
         """elements => elements
