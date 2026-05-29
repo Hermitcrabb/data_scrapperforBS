@@ -21,7 +21,7 @@ jobs:
           pip install --upgrade pip
           pip install playwright pandas
           playwright install --with-deps chromium
-          playwright instal chrome
+          playwright install chrome
       
       # load secrect 
       - name: Load playwright session
@@ -30,7 +30,7 @@ jobs:
 
       - name: Run scraper
         run: |
-          python datascraper.py
+          python datascrapper.py
 
       - name: Upload output CSV
         uses: actions/upload-artifact@v4
