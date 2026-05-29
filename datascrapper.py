@@ -1,13 +1,14 @@
-from playwright.sync_api import Page, expect, sync_playwright
+from playwright.sync_api import sync_playwright
 import pandas as pd
 from datetime import datetime
 
 data_list = []
 failed_ids = []
 perma_failed = []
+url = "https://admin.shopify.com/store/mr-roses-ro/apps/better-shipping/shipping_rate" #yourstoreurl
 
 def scrape_id(page, id, data_list):
-    page.goto(f"https://admin.shopify.com/store/mr-roses-ro/apps/better-shipping/shipping_rate/{id}/edit", wait_until="domcontentloaded")
+    page.goto(f"{url}/{id}/edit", wait_until="domcontentloaded")
     page.wait_for_timeout(4000)
 
     frame = page.frame_locator("iframe[name='app-iframe']")
@@ -35,7 +36,7 @@ def scrape_id(page, id, data_list):
     postcode = (frame.locator("#include_exact_zip_code_input").input_value()).strip()
     page.wait_for_timeout(2000)
 
-    page.goto(f"https://admin.shopify.com/store/mr-roses-ro/apps/better-shipping/shipping_rates/{id}/shipping_rules", wait_until="domcontentloaded")
+    page.goto(f"{url}/{id}/shipping_rules", wait_until="domcontentloaded")
     page.wait_for_timeout(10000)
 
     frame = page.frame_locator("iframe[name='app-iframe']")
@@ -94,7 +95,7 @@ with sync_playwright() as p:
     )
     page = context.new_page()
     
-    page.goto("https://admin.shopify.com/store/mr-roses-ro/apps/better-shipping/shipping_rate", wait_until='networkidle')
+    page.goto(f"{url}", wait_until='networkidle')
     page.wait_for_timeout(4000)
 
     frame = page.frame_locator("iframe[name='app-iframe']")
@@ -117,7 +118,7 @@ with sync_playwright() as p:
             frame = page.frame_locator("iframe[name='app-iframe']")
         else:
             page.goto(
-                f"https://admin.shopify.com/store/mr-roses-ro/apps/better-shipping/shipping_rate?enabled_rates_page={page_num}",
+                f"{url}?enabled_rates_page={page_num}",
                 wait_until="networkidle",
             )
             page.wait_for_timeout(6000)
