@@ -6,7 +6,7 @@ import logging
 data_list = []
 failed_ids = []
 perma_failed = []
-url = "https://admin.shopify.com/store/mr-roses-ro/apps/better-shipping/shipping_rate" #yourstoreurl
+url =  #yourstoreurl
 
 def scrape_id(page, id, data_list):
     page.goto(f"{url}/{id}/edit", wait_until="domcontentloaded")
